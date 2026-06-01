@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom checkbox dot */
+.task-check {
+  @apply inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border border-slate-500 transition;
+}
+.task-check.done {
+  @apply border-brand-500 bg-brand-500 text-white;
+}
