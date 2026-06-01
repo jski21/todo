@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/Login';
 import { DashboardPage } from '@/pages/Dashboard';
 import { CalendarPage } from '@/pages/Calendar';
 import { ListsPage } from '@/pages/Lists';
+import { ShoppingPage } from '@/pages/Shopping';
 import { SettingsPage } from '@/pages/Settings';
 
 export default function App() {
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/lists" element={<ListsPage />} />
+        <Route path="/shopping" element={<ShoppingPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
