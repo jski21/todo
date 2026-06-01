@@ -29,6 +29,8 @@ export interface Task {
   duration_minutes: number | null;
   priority: number | null;
   active: boolean;
+  source: string | null;
+  source_uid: string | null;
   created_at: string;
   updated_at: string;
 }

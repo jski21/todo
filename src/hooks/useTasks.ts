@@ -68,6 +68,7 @@ export function useOccurrences(rangeStart: string, rangeEnd: string) {
         .select('*, task:tasks(*)')
         .gte('occurrence_date', rangeStart)
         .lte('occurrence_date', rangeEnd)
+        .neq('status', 'skipped')
         .order('occurrence_date', { ascending: true });
       if (error) throw error;
       // Invalidate task list cache passively so list view stays fresh.

@@ -5,6 +5,7 @@ import { useTimezone } from '@/hooks/useProfile';
 import { DateTime } from 'luxon';
 import { TaskItem } from '@/components/tasks/TaskItem';
 import { OccurrenceDetail } from '@/components/tasks/OccurrenceDetail';
+import { ImportCalendarDialog } from '@/components/import/ImportCalendarDialog';
 import type { OccurrenceWithTask } from '@/types/db';
 
 export function ListsPage() {
@@ -16,6 +17,7 @@ export function ListsPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [selected, setSelected] = useState<OccurrenceWithTask | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const start = useMemo(
     () => DateTime.now().setZone(zone).minus({ days: 14 }).toISODate() ?? '',
@@ -100,6 +102,12 @@ export function ListsPage() {
           />
           <button className="rounded-md bg-brand-600 px-2 py-1 text-sm text-white">+</button>
         </form>
+        <button
+          onClick={() => setImporting(true)}
+          className="mt-2 w-full rounded-md border border-slate-700 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-800"
+        >
+          Import calendar (.ics)
+        </button>
       </aside>
 
       <section className="space-y-2 overflow-auto p-4">
@@ -121,6 +129,7 @@ export function ListsPage() {
       </section>
 
       {selected && <OccurrenceDetail occurrence={selected} onClose={() => setSelected(null)} />}
+      {importing && <ImportCalendarDialog onClose={() => setImporting(false)} />}
     </div>
   );
 }
