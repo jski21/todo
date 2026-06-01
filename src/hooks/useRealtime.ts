@@ -34,6 +34,20 @@ export function useRealtime(): void {
           qc.invalidateQueries({ queryKey: ['lists'] });
         },
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shopping_lists', filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ['shopping_lists'] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shopping_list_items', filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ['shopping_items'] });
+        },
+      )
       .subscribe();
 
     return () => {

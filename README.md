@@ -18,7 +18,7 @@ Apply `supabase/migrations/*.sql` to your Supabase project (Studio SQL editor or
 - `src/lib/dates.ts` — Luxon + timezone helpers
 - `src/lib/supabase.ts` — typed client
 - `src/hooks/` — TanStack Query hooks (`useTasks`, `useOccurrences`, `useLists`, `useRealtime`, `useAuth`, `useProfile`)
-- `src/pages/` — Login, Dashboard (Today), Calendar, Lists, Settings
+- `src/pages/` — Login, Dashboard (Today), Calendar, Lists, Shopping, Settings
 - `src/components/calendar/` — custom month grid + week view
 - `src/components/tasks/` — form, quick add, list item, occurrence detail, edit-scope dialog
 - `src/components/recurrence/` — recurrence builder with live `toText()` preview
@@ -33,6 +33,10 @@ Editing a recurring task asks for scope:
 - **All**: update template, delete future not-yet-completed occurrences, regenerate.
 
 Times are anchored in `profiles.timezone` so "7am every day" stays 7am local across DST.
+
+### Shopping lists (v1.1)
+
+Additive feature (`supabase/migrations/0003_shopping.sql`): `products` (personal catalog that learns from manual adds for autocomplete / quick re-add), `shopping_lists`, and `shopping_list_items`. Same RLS pattern as everything else. Adding an item upserts the catalog product by `(user_id, lower(name))`, denormalizes the name onto the item, and bumps the quantity if an unchecked item with that name is already on the list rather than duplicating. Free-text items (null `product_id`) are allowed. Post-trip "clear checked" / "clear all" actions; Realtime-synced like tasks. The catalog's `barcode`/`image_url`/`default_aisle` columns are nullable and unused until the v2 hardware phase (scanning / aisle sorting).
 
 ## Out of scope for v1
 

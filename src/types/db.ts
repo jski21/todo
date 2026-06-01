@@ -54,3 +54,35 @@ export interface TaskOccurrence {
 export interface OccurrenceWithTask extends TaskOccurrence {
   task: Task;
 }
+
+export interface Product {
+  id: string;
+  user_id: string;
+  name: string;
+  brand: string | null;
+  barcode: string | null;
+  image_url: string | null;
+  default_aisle: string | null;
+  created_at: string;
+}
+
+export interface ShoppingList {
+  id: string;
+  user_id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ShoppingListItem {
+  id: string;
+  user_id: string;
+  list_id: string;
+  product_id: string | null;
+  name: string;
+  quantity: number;
+  unit: string | null;
+  checked: boolean;
+  sort_order: number;
+  created_at: string;
+}
