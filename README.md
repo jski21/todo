@@ -6,7 +6,7 @@ Personal recurring task manager — dashboard, calendar, recurring tasks, PWA. F
 
 ```bash
 npm install
-cp .env.example .env   # fill in VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
+cp .env.example .env   # fill in NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 npm run dev
 ```
 
