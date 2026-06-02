@@ -1,0 +1,25 @@
+[Unit]
+Description=Donelist printer client (thermal receipt printer)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=donelist
+Group=donelist
+EnvironmentFile=/etc/donelist/config.env
+WorkingDirectory=/opt/donelist/pi-clients
+ExecStart=/opt/donelist/venv/bin/python -m printer.main
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+# Sandboxing; loosen only if a kernel feature blocks something legitimate.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/donelist /tmp
+
+[Install]
+WantedBy=multi-user.target
