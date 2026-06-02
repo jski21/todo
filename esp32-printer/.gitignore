@@ -1,0 +1,12 @@
+# Per-device secrets (WiFi password, service-role key). Copy
+# src/config.h.example to src/config.h locally; never commit.
+src/config.h
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+.vscode/
+*.elf
+*.bin
+*.hex

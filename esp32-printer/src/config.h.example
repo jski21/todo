@@ -1,0 +1,39 @@
+// Copy to src/config.h and fill in. config.h is gitignored — never commit it.
+#pragma once
+
+// ---- WiFi ------------------------------------------------------------
+#define WIFI_SSID       "your_ssid"
+#define WIFI_PASSWORD   "your_password"
+
+// ---- Supabase --------------------------------------------------------
+#define SUPABASE_URL    "https://your-project.supabase.co"
+// SERVICE ROLE KEY — bypasses RLS. Acceptable on a private home device.
+// Find it at Supabase Studio → Project Settings → API → service_role.
+// NEVER ship this in a browser-side bundle.
+#define SUPABASE_KEY    "your_service_role_key"
+
+// ---- Printer wiring (UART2 by default) -------------------------------
+#define PRINTER_RX_PIN  16   // ESP32 RX  ← printer TX
+#define PRINTER_TX_PIN  17   // ESP32 TX  → printer RX
+#define PRINTER_BAUD    9600 // common; try 19200 if your printer is faster
+#define PAPER_COLS      32   // 58mm = 32; 80mm = 48
+
+// ---- Loop timing -----------------------------------------------------
+#define POLL_INTERVAL_MS   10000 // 10s — printer latency budget is generous
+#define CLAIM_TIMEOUT_MIN  5     // reset stuck "printing" jobs older than this
+#define WDT_TIMEOUT_S      60    // hardware watchdog (must exceed poll + max print)
+
+// ---- QR rendering ----------------------------------------------------
+// NATIVE: send ESC/POS GS ( k QR commands. Works on Epson-compatible
+//         printers; silently does nothing on many cheap clones.
+// TEXT:   print the QR's URL as plain text ("Scan: <url>"). Always works.
+#define QR_MODE_NATIVE 1
+#define QR_MODE_TEXT   2
+#define QR_MODE        QR_MODE_TEXT
+
+// ---- HTTPS verification ---------------------------------------------
+// 1 = use WiFiClientSecure::setInsecure() — skip cert validation. Fine
+//     for a private LAN device; documented as a deliberate tradeoff.
+// 0 = if you've bundled Supabase's root CA into a PEM constant, set this
+//     and wire it up in supabase.cpp.
+#define HTTPS_INSECURE 1
