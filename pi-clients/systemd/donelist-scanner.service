@@ -1,0 +1,25 @@
+[Unit]
+Description=Donelist scanner client (USB barcode scanner)
+After=network-online.target dev-donelist\x2dscanner.device
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=donelist
+# 'input' group is needed for evdev access on raspbian/debian.
+SupplementaryGroups=input
+EnvironmentFile=/etc/donelist/config.env
+WorkingDirectory=/opt/donelist/pi-clients
+ExecStart=/opt/donelist/venv/bin/python -m scanner.main
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/donelist
+
+[Install]
+WantedBy=multi-user.target

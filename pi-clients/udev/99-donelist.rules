@@ -1,0 +1,24 @@
+# Stable device paths + permissions for the Donelist hardware services.
+#
+# Discover the vendor and product ids of your specific devices with `lsusb`
+# and fill them in below. Reload rules with:
+#   sudo cp 99-donelist.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# After this:
+#   /dev/donelist-scanner  symlinks the scanner's evdev node
+#   /dev/donelist-printer  symlinks the printer (USB-class) if applicable
+# and both are readable by the 'input' / 'donelist' groups so the services
+# don't need root.
+
+# --- USB barcode scanner (HID keyboard) -------------------------------
+# Replace 0xVVVV / 0xPPPP. Example: Honeywell Voyager = 0c2e:0901.
+SUBSYSTEM=="input", KERNEL=="event*", ATTRS{idVendor}=="VVVV", ATTRS{idProduct}=="PPPP", \
+  SYMLINK+="donelist-scanner", MODE="0660", GROUP="input"
+
+# --- Thermal printer (USB) -------------------------------------------
+# Many ESC/POS printers (Epson TM-T20, etc.) expose a raw USB endpoint and
+# also a /dev/usb/lpX node. The Python client talks to the USB endpoint
+# directly via libusb, so giving the 'donelist' group access is enough.
+SUBSYSTEM=="usb", ATTRS{idVendor}=="VVVV", ATTRS{idProduct}=="PPPP", \
+  MODE="0660", GROUP="donelist"
