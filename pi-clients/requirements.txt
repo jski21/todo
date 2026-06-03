@@ -1,5 +1,10 @@
 supabase>=2.5.0,<3
 pydantic>=2.6,<3
 python-escpos>=3.0,<4
+# python-escpos lists pyusb as an optional dep; without it the USB backend
+# fails at runtime with "Printing with USB connection requires a usb library
+# to be installed". Pin it explicitly so installs don't drift.
+pyusb>=1.2,<2
+pyserial>=3.5,<4
 evdev>=1.6,<2 ; sys_platform == "linux"
 python-dotenv>=1.0,<2
