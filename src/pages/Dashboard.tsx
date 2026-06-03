@@ -6,6 +6,7 @@ import { QuickAdd } from '@/components/tasks/QuickAdd';
 import { TaskItem } from '@/components/tasks/TaskItem';
 import { TaskForm } from '@/components/tasks/TaskForm';
 import { OccurrenceDetail } from '@/components/tasks/OccurrenceDetail';
+import { PrintButton } from '@/components/print/PrintButton';
 import type { OccurrenceWithTask } from '@/types/db';
 
 export function DashboardPage() {
@@ -41,12 +42,15 @@ export function DashboardPage() {
             {DateTime.now().setZone(zone).toFormat('cccc, LLLL d')}
           </p>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
-        >
-          + New task
-        </button>
+        <div className="flex items-center gap-2">
+          <PrintButton request={{ type: 'daily' }} label="Print today" />
+          <button
+            onClick={() => setCreating(true)}
+            className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+          >
+            + New task
+          </button>
+        </div>
       </header>
 
       <QuickAdd defaultDate={today} />

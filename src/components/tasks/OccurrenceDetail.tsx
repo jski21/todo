@@ -11,6 +11,7 @@ import {
 import { useTimezone } from '@/hooks/useProfile';
 import { useLists } from '@/hooks/useLists';
 import { EditScopeDialog, type EditScope } from './EditScopeDialog';
+import { PrintButton } from '@/components/print/PrintButton';
 import { RecurrenceBuilder, defaultRecurrence } from '@/components/recurrence/RecurrenceBuilder';
 import { buildRRule, parseRRule, type RecurrenceInput } from '@/lib/recurrence';
 import type { OccurrenceWithTask } from '@/types/db';
@@ -178,12 +179,18 @@ export function OccurrenceDetail({ occurrence, onClose }: Props) {
           )}
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <button
-            onClick={onDelete}
-            className="rounded-md border border-rose-800 px-3 py-1.5 text-sm text-rose-300 hover:bg-rose-950"
-          >
-            Delete
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={onDelete}
+              className="rounded-md border border-rose-800 px-3 py-1.5 text-sm text-rose-300 hover:bg-rose-950"
+            >
+              Delete
+            </button>
+            <PrintButton
+              request={{ type: 'occurrence', occurrence_id: occurrence.id }}
+              label="Print ticket"
+            />
+          </div>
           <div className="flex gap-2">
             <button
               onClick={onClose}

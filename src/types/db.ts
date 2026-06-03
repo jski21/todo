@@ -3,6 +3,10 @@ export type TaskStatus = 'pending' | 'done' | 'skipped';
 export interface Profile {
   id: string;
   timezone: string;
+  printer_width_chars: number;
+  daily_print_enabled: boolean;
+  daily_print_time: string | null;
+  default_shopping_list_id: string | null;
   created_at: string;
 }
 

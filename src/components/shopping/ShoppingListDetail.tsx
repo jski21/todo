@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useClearShoppingItems, useShoppingItems } from '@/hooks/useShopping';
 import { AddItem } from './AddItem';
 import { ShoppingItem } from './ShoppingItem';
+import { PrintButton } from '@/components/print/PrintButton';
 import type { ShoppingList } from '@/types/db';
 
 export function ShoppingListDetail({ list }: { list: ShoppingList }) {
@@ -19,7 +20,12 @@ export function ShoppingListDetail({ list }: { list: ShoppingList }) {
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 p-3">
         <h1 className="text-lg font-semibold">{list.name}</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <PrintButton
+            request={{ type: 'shopping_list', list_id: list.id }}
+            label="Print list"
+            disabled={unchecked.length === 0}
+          />
           <button
             onClick={() => clear.mutate({ list_id: list.id, scope: 'checked' })}
             disabled={checked.length === 0}
