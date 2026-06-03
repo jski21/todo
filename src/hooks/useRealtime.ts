@@ -48,6 +48,13 @@ export function useRealtime(): void {
           qc.invalidateQueries({ queryKey: ['shopping_items'] });
         },
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'print_jobs', filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ['print_jobs'] });
+        },
+      )
       .subscribe();
 
     return () => {
