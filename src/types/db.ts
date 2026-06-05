@@ -33,6 +33,7 @@ export interface Task {
   duration_minutes: number | null;
   priority: number | null;
   active: boolean;
+  is_someday: boolean;
   source: string | null;
   source_uid: string | null;
   created_at: string;

@@ -49,7 +49,7 @@ export function CalendarPage() {
   const dayOccurrences = selectedDate ? byDate.get(selectedDate) ?? [] : [];
 
   return (
-    <div className="flex h-full flex-col p-3 md:p-5">
+    <div className="flex flex-col p-3 md:h-full md:p-5">
       <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
@@ -104,7 +104,7 @@ export function CalendarPage() {
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-3 md:min-h-0 md:flex-1 md:grid-cols-[1fr_320px]">
         <div className="min-h-[28rem]">
           {view === 'month' ? (
             <MonthGrid
@@ -122,14 +122,14 @@ export function CalendarPage() {
             />
           )}
         </div>
-        <aside className="flex min-h-0 flex-col overflow-hidden rounded-md border border-slate-800 bg-slate-900/40">
+        <aside className="rounded-md border border-slate-800 bg-slate-900/40 md:flex md:min-h-0 md:flex-col md:overflow-hidden">
           <div className="border-b border-slate-800 p-3">
             <div className="text-xs uppercase tracking-wide text-slate-400">Day</div>
             <div className="text-base font-semibold">
               {selectedDate ? DateTime.fromISO(selectedDate).toFormat('cccc, LLL d') : '—'}
             </div>
           </div>
-          <div className="flex-1 space-y-2 overflow-auto p-3">
+          <div className="space-y-2 p-3 md:flex-1 md:overflow-auto">
             {dayOccurrences.length === 0 ? (
               <p className="text-sm text-slate-500">No tasks.</p>
             ) : (
