@@ -8,4 +8,7 @@ dist-ssr
 .DS_Store
 .vite
 tsconfig.tsbuildinfo
+__pycache__/
+*.pyc
+.venv/
 
