@@ -38,13 +38,18 @@ serve(async (req: Request) => {
   }
   if (!body.type) return json({ error: 'type required' }, 400);
 
+  // 'daily' fans out into one print_job per today's occurrence, so each task
+  // gets its own tear-off ticket. shopping_list / occurrence stay as a
+  // single job each.
+  if (body.type === 'daily') {
+    const result = await enqueueDailyTickets(supabase);
+    return json(result);
+  }
+
   let payload: PrintPayload;
   switch (body.type) {
     case 'shopping_list':
       payload = await buildShoppingList(supabase, body.list_id);
-      break;
-    case 'daily':
-      payload = await buildDaily(supabase);
       break;
     case 'occurrence':
       payload = await buildOccurrence(supabase, body.occurrence_id);
@@ -138,9 +143,16 @@ async function buildShoppingList(supabase: any, listId: string): Promise<PrintPa
   };
 }
 
+/**
+ * Fan today's task agenda out into one tear-off ticket per occurrence so
+ * each task gets its own throwable receipt. Returns the array of queued
+ * job ids plus the first id for backward-compatible single-job callers.
+ *
+ * If the day has no tasks, queues exactly one "Nothing scheduled" ticket
+ * so the click still produces visible output.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function buildDaily(supabase: any): Promise<PrintPayload> {
-  // Resolve user timezone for today's date boundary.
+async function enqueueDailyTickets(supabase: any): Promise<{ job_id: string; job_ids: string[]; count: number }> {
   const { data: profile } = await supabase
     .from('profiles')
     .select('timezone')
@@ -150,34 +162,47 @@ async function buildDaily(supabase: any): Promise<PrintPayload> {
 
   const { data: occs, error } = await supabase
     .from('task_occurrences')
-    .select('id, occurrence_date, scheduled_at, status, override_title, override_time, task:tasks(title, due_time)')
+    .select('id, occurrence_date, status')
     .eq('occurrence_date', todayKey)
     .neq('status', 'skipped')
     .order('scheduled_at', { ascending: true, nullsFirst: false });
   if (error) throw new Error(error.message);
 
-  const lines = (occs ?? []).map((o: {
-    override_title: string | null;
-    override_time: string | null;
-    status: string;
-    task: { title: string; due_time: string | null } | null;
-  }) => {
-    const title = o.override_title ?? o.task?.title ?? '(untitled)';
-    const time = o.override_time ?? o.task?.due_time ?? null;
-    const text = time ? `${formatTime12(time)}  ${title}` : title;
-    return line(text, { checkbox: o.status !== 'done' });
-  });
+  // Empty day: still queue one summary ticket so the click feels alive.
+  if (!occs || occs.length === 0) {
+    const payload: PrintPayload = {
+      format: 'ticket',
+      title: 'Today',
+      subtitle: formatDate(new Date()),
+      lines: [],
+      qr: null,
+      barcode: null,
+      footer: 'Nothing scheduled',
+      cut: true,
+    };
+    const { data: job, error: insErr } = await supabase
+      .from('print_jobs')
+      .insert({ type: 'daily', payload, status: 'queued' })
+      .select('id')
+      .single();
+    if (insErr) throw new Error(insErr.message);
+    return { job_id: job.id, job_ids: [job.id], count: 1 };
+  }
 
-  return {
-    format: 'daily',
-    title: 'Today',
-    subtitle: formatDate(new Date()),
-    lines,
-    qr: null,
-    barcode: null,
-    footer: lines.length === 0 ? 'Nothing scheduled' : null,
-    cut: true,
-  };
+  // One ticket per occurrence — buildOccurrence already mints a ticket
+  // row and embeds the QR for scan-to-complete.
+  const job_ids: string[] = [];
+  for (const o of occs as { id: string }[]) {
+    const payload = await buildOccurrence(supabase, o.id);
+    const { data: job, error: insErr } = await supabase
+      .from('print_jobs')
+      .insert({ type: 'occurrence', payload, status: 'queued' })
+      .select('id')
+      .single();
+    if (insErr) throw new Error(insErr.message);
+    job_ids.push(job.id as string);
+  }
+  return { job_id: job_ids[0], job_ids, count: job_ids.length };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
