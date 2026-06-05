@@ -29,14 +29,33 @@ def render(printer: _EscposLike, payload: PrintPayload, width: int = 32) -> None
     if width < 16:
         width = 16  # paranoia: don't divide by zero in layout math
 
-    # ---- title (double height + bold, centered) -------------------
-    printer.set(align="center", bold=True, double_height=True, double_width=False)
-    printer.text(_truncate(payload.title, width) + "\n")
-    printer.set(align="center", bold=False, double_height=False, double_width=False)
+    is_ticket = payload.format == "ticket"
 
-    # ---- subtitle (centered, normal) ------------------------------
+    # ---- title -----------------------------------------------------
+    # Tickets get a chunkier title (double width + double height) so they
+    # read at arm's length on the fridge. Lists keep the slimmer look that
+    # fits more lines per inch of paper.
+    if is_ticket:
+        printer.set(align="center", bold=True, double_height=True, double_width=True)
+        # Double-width chars take 2 cols, so the practical width halves.
+        printer.text(_truncate(payload.title, width // 2) + "\n")
+    else:
+        printer.set(align="center", bold=True, double_height=True, double_width=False)
+        printer.text(_truncate(payload.title, width) + "\n")
+
+    # ---- subtitle --------------------------------------------------
     if payload.subtitle:
-        printer.text(_truncate(payload.subtitle, width) + "\n")
+        if is_ticket:
+            # Bold + double-height (not double-width) — bigger date without
+            # eating two paper rows of vertical space.
+            printer.set(align="center", bold=True, double_height=True, double_width=False)
+            printer.text(_truncate(payload.subtitle, width) + "\n")
+        else:
+            printer.set(align="center", bold=False, double_height=False, double_width=False)
+            printer.text(_truncate(payload.subtitle, width) + "\n")
+
+    # Reset to plain and draw the divider.
+    printer.set(align="center", bold=False, double_height=False, double_width=False)
     printer.text("-" * width + "\n")
 
     # ---- body lines ----------------------------------------------
