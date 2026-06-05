@@ -4,6 +4,7 @@ import { useOccurrences } from '@/hooks/useTasks';
 import { useTimezone } from '@/hooks/useProfile';
 import { DateTime } from 'luxon';
 import { TaskItem } from '@/components/tasks/TaskItem';
+import { TaskForm } from '@/components/tasks/TaskForm';
 import { OccurrenceDetail } from '@/components/tasks/OccurrenceDetail';
 import { SomedaySection } from '@/components/tasks/SomedaySection';
 import { ImportCalendarDialog } from '@/components/import/ImportCalendarDialog';
@@ -19,6 +20,7 @@ export function ListsPage() {
   const [newName, setNewName] = useState('');
   const [selected, setSelected] = useState<OccurrenceWithTask | null>(null);
   const [importing, setImporting] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const start = useMemo(
     () => DateTime.now().setZone(zone).minus({ days: 14 }).toISODate() ?? '',
@@ -112,9 +114,17 @@ export function ListsPage() {
       </aside>
 
       <section className="space-y-6 overflow-auto p-4">
-        <h1 className="text-xl font-semibold">
-          {activeId ? lists.find((l) => l.id === activeId)?.name ?? '' : 'Inbox'}
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-xl font-semibold">
+            {activeId ? lists.find((l) => l.id === activeId)?.name ?? '' : 'Inbox'}
+          </h1>
+          <button
+            onClick={() => setCreating(true)}
+            className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+          >
+            + Add task
+          </button>
+        </div>
 
         <div className="space-y-2">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -144,6 +154,26 @@ export function ListsPage() {
 
       {selected && <OccurrenceDetail occurrence={selected} onClose={() => setSelected(null)} />}
       {importing && <ImportCalendarDialog onClose={() => setImporting(false)} />}
+      {creating && (
+        <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/60 p-0 md:items-center md:p-4">
+          <div className="w-full max-w-lg rounded-t-lg border border-slate-700 bg-slate-900 p-4 md:rounded-lg">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">New task</h2>
+              <button
+                onClick={() => setCreating(false)}
+                className="text-slate-400 hover:text-slate-200"
+              >
+                ✕
+              </button>
+            </div>
+            <TaskForm
+              initialDate=""
+              initialListId={activeId}
+              onClose={() => setCreating(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
