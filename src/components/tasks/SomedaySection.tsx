@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  useCreateTask,
   useDeleteTaskAll,
   useRenameSomeday,
   useScheduleSomeday,
@@ -15,40 +14,9 @@ interface Props {
 
 export function SomedaySection({ listId }: Props) {
   const { data: tasks = [], isLoading } = useSomedayTasks(listId);
-  const createTask = useCreateTask();
-  const [newTitle, setNewTitle] = useState('');
-
-  async function addQuick(e: React.FormEvent) {
-    e.preventDefault();
-    const title = newTitle.trim();
-    if (!title) return;
-    await createTask.mutateAsync({
-      title,
-      list_id: listId,
-      is_recurring: false,
-      is_someday: true,
-    });
-    setNewTitle('');
-  }
 
   return (
     <section className="space-y-2">
-      <form onSubmit={addQuick} className="flex gap-2">
-        <input
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          placeholder="Add a task (no date) and press Enter…"
-          className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-brand-500 focus:outline-none"
-        />
-        <button
-          type="submit"
-          disabled={createTask.isPending || !newTitle.trim()}
-          className="rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-        >
-          Add
-        </button>
-      </form>
-
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading…</p>
       ) : tasks.length === 0 ? (
