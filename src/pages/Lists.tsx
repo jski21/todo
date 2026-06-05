@@ -5,6 +5,7 @@ import { useTimezone } from '@/hooks/useProfile';
 import { DateTime } from 'luxon';
 import { TaskItem } from '@/components/tasks/TaskItem';
 import { OccurrenceDetail } from '@/components/tasks/OccurrenceDetail';
+import { SomedaySection } from '@/components/tasks/SomedaySection';
 import { ImportCalendarDialog } from '@/components/import/ImportCalendarDialog';
 import type { OccurrenceWithTask } from '@/types/db';
 
@@ -110,22 +111,35 @@ export function ListsPage() {
         </button>
       </aside>
 
-      <section className="space-y-2 overflow-auto p-4">
+      <section className="space-y-6 overflow-auto p-4">
         <h1 className="text-xl font-semibold">
           {activeId ? lists.find((l) => l.id === activeId)?.name ?? '' : 'Inbox'}
         </h1>
-        {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500">No tasks.</p>
-        ) : (
-          filtered.map((o) => (
-            <div key={o.id}>
-              <div className="text-xs text-slate-500">
-                {DateTime.fromISO(o.occurrence_date).toFormat('ccc, LLL d')}
+
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            Someday
+          </h2>
+          <SomedaySection listId={activeId} />
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            Scheduled
+          </h2>
+          {filtered.length === 0 ? (
+            <p className="text-sm text-slate-500">No scheduled tasks.</p>
+          ) : (
+            filtered.map((o) => (
+              <div key={o.id}>
+                <div className="text-xs text-slate-500">
+                  {DateTime.fromISO(o.occurrence_date).toFormat('ccc, LLL d')}
+                </div>
+                <TaskItem occurrence={o} onClick={() => setSelected(o)} />
               </div>
-              <TaskItem occurrence={o} onClick={() => setSelected(o)} />
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </section>
 
       {selected && <OccurrenceDetail occurrence={selected} onClose={() => setSelected(null)} />}

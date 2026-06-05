@@ -11,11 +11,15 @@ export interface CreateTaskInput {
   title: string;
   notes?: string | null;
   list_id?: string | null;
-  date: string; // YYYY-MM-DD (local anchor)
+  /** Local anchor date YYYY-MM-DD; omit (or set is_someday) for someday tasks. */
+  date?: string;
   time?: string | null; // HH:mm
   priority?: number | null;
   is_recurring: boolean;
   rrule?: string | null;
+  /** If true, the task lives in a list with no schedule — never materializes
+   *  an occurrence, never shows on dashboard/calendar. */
+  is_someday?: boolean;
 }
 
 export function useTasks() {
@@ -85,7 +89,12 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: async (input: CreateTaskInput): Promise<Task> => {
       if (!user) throw new Error('not signed in');
-      const dtstart = combineDateTimeUtc(input.date, input.time ?? '00:00', zone);
+      const isSomeday = !!input.is_someday || !input.date;
+      // For someday tasks dtstart is meaningless but the column is NOT NULL,
+      // so use today as a placeholder. It's never read for someday tasks
+      // because generateOccurrences filters them out.
+      const dtstartDate = input.date ?? DateTime.now().setZone(zone).toISODate() ?? '';
+      const dtstart = combineDateTimeUtc(dtstartDate, input.time ?? '00:00', zone);
       const { data, error } = await supabase
         .from('tasks')
         .insert({
@@ -97,11 +106,17 @@ export function useCreateTask() {
           priority: input.priority ?? null,
           is_recurring: input.is_recurring,
           rrule: input.is_recurring ? input.rrule ?? null : null,
+          is_someday: isSomeday,
         })
         .select()
         .single();
       if (error) throw error;
       const task = data as Task;
+
+      if (isSomeday) {
+        // No occurrences for someday tasks — they live in their list only.
+        return task;
+      }
 
       // Materialize at least the rolling 60-day window plus the visible range if recurring,
       // otherwise just the single occurrence row.
@@ -109,7 +124,7 @@ export function useCreateTask() {
         await supabase.from('task_occurrences').upsert(
           {
             task_id: task.id,
-            occurrence_date: input.date,
+            occurrence_date: dtstartDate,
             scheduled_at: dtstart,
           },
           { onConflict: 'task_id,occurrence_date', ignoreDuplicates: true },
@@ -392,6 +407,90 @@ export function useOccurrence(id: string | undefined) {
       if (error) throw error;
       return (data ?? null) as OccurrenceWithTask | null;
     },
+  });
+}
+
+// ---- someday tasks ---------------------------------------------------
+
+/** Tasks in a list that have no schedule (is_someday=true). Null listId
+ *  means "no list" (loose inbox-style someday tasks). */
+export function useSomedayTasks(listId: string | null | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['someday_tasks', user?.id, listId ?? '__null__'],
+    enabled: !!user,
+    queryFn: async (): Promise<Task[]> => {
+      let q = supabase
+        .from('tasks')
+        .select('*')
+        .eq('is_someday', true)
+        .eq('active', true);
+      if (listId) q = q.eq('list_id', listId);
+      else q = q.is('list_id', null);
+      const { data, error } = await q.order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Task[];
+    },
+  });
+}
+
+/** Flip a someday task into a scheduled task by giving it a date. */
+export function useScheduleSomeday() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const zone = useTimezone();
+  return useMutation({
+    mutationFn: async (args: { task_id: string; date: string; time?: string | null }) => {
+      if (!user) throw new Error('not signed in');
+      const dtstart = combineDateTimeUtc(args.date, args.time ?? '00:00', zone);
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({
+          is_someday: false,
+          dtstart,
+          due_time: args.time ?? null,
+        })
+        .eq('id', args.task_id)
+        .select()
+        .single();
+      if (error) throw error;
+      const task = data as Task;
+
+      if (!task.is_recurring) {
+        await supabase.from('task_occurrences').upsert(
+          {
+            task_id: task.id,
+            occurrence_date: args.date,
+            scheduled_at: dtstart,
+          },
+          { onConflict: 'task_id,occurrence_date', ignoreDuplicates: true },
+        );
+      } else {
+        const start = DateTime.now().setZone(zone).minus({ days: 7 }).startOf('day').toJSDate();
+        const end = DateTime.now().setZone(zone).plus({ days: 90 }).endOf('day').toJSDate();
+        await generateOccurrences(user.id, zone, start, end);
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['someday_tasks'] });
+      qc.invalidateQueries({ queryKey: ['tasks'] });
+      qc.invalidateQueries({ queryKey: ['occurrences'] });
+    },
+  });
+}
+
+/** Rename a someday task in-place. */
+export function useRenameSomeday() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { task_id: string; title: string }) => {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ title: args.title })
+        .eq('id', args.task_id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['someday_tasks'] }),
   });
 }
 

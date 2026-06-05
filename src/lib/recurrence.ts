@@ -158,7 +158,8 @@ export async function generateOccurrences(
     .from('tasks')
     .select('*')
     .eq('user_id', userId)
-    .eq('active', true);
+    .eq('active', true)
+    .eq('is_someday', false);
   if (error) throw error;
   if (!tasks || tasks.length === 0) return;
 
